@@ -1,7 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
+from src.app.main import app
 
-from main import app
+
+client = TestClient(app)  # type: ignore
 
 
 @pytest.fixture()
@@ -49,19 +51,19 @@ def above_50k_example():
     }
 
 
-def test_root(client):
+def test_root(client: TestClient):
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Welcome to Income Prediction App!)"}
 
 
-def test_predict_below_50k(client, below_50k_example):
+def test_predict_below_50k(client: TestClient, below_50k_example: dict[str, Any]):
     response = client.post("/model/", json=below_50k_example)
     assert response.status_code == 200
     assert response.json() == [0]
 
 
-def test_predict_above_50k(client, above_50k_example):
+def test_predict_above_50k(client: TestClient, above_50k_example: dict[str, Any]):
     response = client.post("/model/", json=above_50k_example)
     assert response.status_code == 200
     assert response.json() == [1]
