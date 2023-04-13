@@ -1,62 +1,33 @@
-from sklearn.model_selection import train_test_split
-from data import process_data
-from model import compute_model_metrics, train_model
+import os
 import pandas as pd
 import joblib
-import os
-
-# Add code to load in the data.
-data_path = "data/raw/census.csv"
-data = pd.read_csv(data_path)
-
-cat_features = [
-    "workclass",
-    "education",
-    "marital-status",
-    "occupation",
-    "relationship",
-    "race",
-    "sex",
-    "native-country",
-]
-label = "salary"
-
-train, test = train_test_split(data, test_size=0.20)
-
-X_train, y_train, encoder, lb = process_data(
-    train, categorical_features=cat_features, label=label, training=True
-)
-
-# Proces the test data with the process_data function.
-X_test, y_test, *_ = process_data(
-    test,
-    categorical_features=cat_features,
-    label=label,
-    training=False,
-    encoder=encoder,
-    lb=lb,
-)
-
-# Train the model
-model = train_model(X_train, y_train)
+from sklearn.model_selection import train_test_split
+from src.app.models.data import process_data
+from model import compute_model_metrics, train_model
 
 
-def evaluate_model(
-    data,
-    cat_features: list,
-    output_dir: str,
-    model=None,
-    encoder=None,
-    lb=None,
-    label=None,
-    model_file=None,
-    encoder_file=None,
-    binarizer_file=None,
+def load_data(data_path):
+    return pd.read_csv(data_path)
+
+
+def split_data(data, test_size=0.2):
+    train, test = train_test_split(data, test_size=test_size)
+    return train, test
+
+
+def train_and_save_model(
+    train, cat_features, label, model_file, encoder_file, binarizer_file
 ):
-    model = model or joblib.load(model_file)
-    encoder = encoder or joblib.load(encoder_file)
-    lb = lb or joblib.load(binarizer_file)
+    X_train, y_train, encoder, lb = process_data(
+        train, categorical_features=cat_features, label=label, training=True
+    )
+    model = train_model(X_train, y_train)
+    joblib.dump(model, model_file)
+    joblib.dump(encoder, encoder_file)
+    joblib.dump(lb, binarizer_file)
 
+
+def evaluate_model(data, cat_features, label, model, encoder, lb, output_dir):
     performance_df = pd.DataFrame(
         columns=["feature", "category", "precision", "recall", "fbeta"]
     )
@@ -91,25 +62,37 @@ def evaluate_model(
     performance_df.to_csv(output_file, index=False)
 
 
-# Save the trained model to a file so we can use it in the API
-model_file = "model.joblib"
-joblib.dump(model, model_file)
+def run():
+    # Add code to load in the data.
+    data_path = "data/raw/census.csv"
+    data = load_data(data_path)
 
-# Save the trained encoder to a file so we can use it in the API
-encoder_file = "encoder.joblib"
-joblib.dump(encoder, encoder_file)
+    cat_features = [
+        "workclass",
+        "education",
+        "marital-status",
+        "occupation",
+        "relationship",
+        "race",
+        "sex",
+        "native-country",
+    ]
+    label = "salary"
 
-# Save the label binarizer to a file so we can use it in the API
-binarizer_file = "lb.joblib"
-joblib.dump(lb, binarizer_file)
+    train, test = split_data(data)
 
-# Evaluate the model
-evaluate_model(
-    test,
-    cat_features,
-    output_dir="",
-    label=label,
-    model_file=model_file,
-    encoder_file=encoder_file,
-    binarizer_file=binarizer_file,
-)
+    # Train and save the model
+    model_file = "model.joblib"
+    encoder_file = "encoder.joblib"
+    binarizer_file = "lb.joblib"
+    train_and_save_model(
+        train, cat_features, label, model_file, encoder_file, binarizer_file
+    )
+
+    # Load the trained model, encoder, and label binarizer
+    model = joblib.load(model_file)
+    encoder = joblib.load(encoder_file)
+    lb = joblib.load(binarizer_file)
+
+    # Evaluate the model
+    evaluate_model(test, cat_features, label, model, encoder, lb, output_dir="")
