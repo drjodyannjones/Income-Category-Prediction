@@ -1,19 +1,13 @@
-import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from pydantic import Field
 import joblib
-from .models.data import process_data
-from .models.model import inference
-from .models.train_model import train_model
-from .config import Settings
-from .utils.utils import load_asset
+
+from app.models.data import process_data
+from app.models.model import inference
+from app.models.train_model import train_model
+from app.config import Settings
 
 
 app = FastAPI()
@@ -40,12 +34,11 @@ class PredictionResult(BaseModel):
     prediction: str
 
 
-@app.on_event("startup")
-async def startup_event():
-    app.state.settings = Settings()
-    app.state.model = joblib.load(app.state.settings.model_path)
-    app.state.encoder = joblib.load(app.state.settings.encoder_path)
-    app.state.lb = joblib.load(app.state.settings.lb_path)
+def load_assets(settings: Settings):
+    model = joblib.load(settings.model_path)
+    encoder = joblib.load(settings.encoder_path)
+    lb = joblib.load(settings.lb_path)
+    return model, encoder, lb
 
 
 @app.get("/")
@@ -57,10 +50,8 @@ async def root():
 
 
 @app.post("/model/")
-async def predict(data: InputData):
-    model = app.state.model
-    encoder = app.state.encoder
-    lb = app.state.lb
+async def predict(data: InputData, assets=Depends(load_assets)):
+    model, encoder, lb = assets
 
     cat_features = [
         "workclass",
@@ -73,7 +64,6 @@ async def predict(data: InputData):
         "native_country",
     ]
 
-    # Modify to pass in multiple indices
     df = pd.DataFrame(data.dict(by_alias=True), index=[0])
     X, *_ = process_data(
         df,
@@ -89,5 +79,13 @@ async def predict(data: InputData):
 
 if __name__ == "__main__":
     import uvicorn
+
+    settings = Settings()
+    model, encoder, lb = load_assets(settings)
+
+    app.state.settings = settings
+    app.state.model = model
+    app.state.encoder = encoder
+    app.state.lb = lb
 
     uvicorn.run(app, host="0.0.0.0", port=8000)

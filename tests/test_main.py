@@ -55,7 +55,7 @@ def above_50k_example():
 def test_root(client: TestClient):
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to Income Prediction App!)"}
+    assert response.json() == {"message": "Welcome to Income Prediction App!"}
 
 
 def test_predict_below_50k(client: TestClient, below_50k_example: dict[str, Any]):
