@@ -1,0 +1,10 @@
+python=3.8
+scikit-learn
+pandas
+numpy
+pytest
+jupyter
+jupyterlab
+fastapi
+uvicorn
+pydantic
