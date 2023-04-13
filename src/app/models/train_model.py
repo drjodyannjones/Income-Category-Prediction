@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 from sklearn.model_selection import train_test_split
 from src.app.models.data import process_data
-from model import compute_model_metrics, train_model
+from src.app.models.model import compute_model_metrics, train_model
 
 
 def load_data(data_path):
