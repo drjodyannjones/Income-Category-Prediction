@@ -3,23 +3,23 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pandas as pd
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from pydantic import Field
+from utils.utils import load_asset
+from config import Settings
+from models.train_model import train_model
+from models.model import inference
+from models.data import process_data
 import joblib
-from app.models.data import process_data
-from app.models.model import inference
-from app.models.train_model import train_model
-from app.config import Settings
-from app.utils.utils import load_asset
+from pydantic import Field
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+import pandas as pd
 
 
 app = FastAPI()
 
 
-class InputData(BaseModel):
+class CensusData(BaseModel):
     age: int
     workclass: str
     fnlgt: int
@@ -57,7 +57,7 @@ async def root():
 
 
 @app.post("/model/")
-async def predict(data: InputData):
+async def predict(data: CensusData):
     model = app.state.model
     encoder = app.state.encoder
     lb = app.state.lb
