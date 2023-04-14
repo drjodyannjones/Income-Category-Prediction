@@ -9,7 +9,7 @@ import asyncio
 # Add the path to the src folder to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
-from ..app.main import app, startup_event, root, predict
+from app.main import app, startup_event, root, predict
 
 # Create a TestClient instance to interact with the app
 test_client = TestClient(app)
