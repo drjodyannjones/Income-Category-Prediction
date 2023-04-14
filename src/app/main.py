@@ -3,18 +3,19 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.utils import load_asset
-from config import Settings
-from models.train_model import train_model
-from models.model import inference
-from models.data import process_data
+# Use relative imports
+from app.utils.utils import load_asset
+from app.config import Settings
+from app.models.train_model import train_model
+from app.models.model import inference
+from app.models.data import process_data
+
 import joblib
-from pydantic import Field
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI
 import pandas as pd
-
+import asyncio
 
 app = FastAPI()
 
@@ -56,7 +57,7 @@ async def root():
     )
 
 
-@app.post("/model/")
+@app.post("/model", response_model=PredictionResult)
 async def predict(data: CensusData):
     model = app.state.model
     encoder = app.state.encoder
@@ -73,7 +74,6 @@ async def predict(data: CensusData):
         "native_country",
     ]
 
-    # Modify to pass in multiple indices
     df = pd.DataFrame(data.dict(by_alias=True), index=[0])
     X, *_ = process_data(
         df,
@@ -84,7 +84,8 @@ async def predict(data: CensusData):
         training=False,
     )
     predictions = inference(model, X)
-    return JSONResponse(status_code=200, content=predictions.tolist())
+    prediction = lb.inverse_transform(predictions)[0]
+    return PredictionResult(prediction=prediction)
 
 
 if __name__ == "__main__":

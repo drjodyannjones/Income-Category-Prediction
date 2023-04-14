@@ -71,3 +71,7 @@ In order to activate your virtual environment, run this command:
 ## Step 4: Install the dependencies into your virtual environment
 
 <pre>conda install --file requirements.txt</pre>
+
+```
+
+```
