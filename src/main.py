@@ -36,6 +36,26 @@ class CensusData(BaseModel):
     hours_per_week: int
     native_country: str
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "age": 40,
+                "workclass": "Private",
+                "fnlgt": 77516,
+                "education": "Bachelors",
+                "education_num": 13,
+                "marital_status": "Married-civ-spouse",
+                "occupation": "Exec-managerial",
+                "relationship": "Husband",
+                "race": "White",
+                "sex": "Male",
+                "capital_gain": 1000,
+                "capital_loss": 0,
+                "hours_per_week": 40,
+                "native_country": "United-States",
+            }
+        }
+
 
 class PredictionResult(BaseModel):
     prediction: str
