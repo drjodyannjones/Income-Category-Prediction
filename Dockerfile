@@ -1,14 +1,20 @@
-FROM python:3.10.10
+# Use the official Python base image
+FROM python:3.9
 
-WORKDIR /src
+# Set the working directory to /app
+WORKDIR /app
 
+# Copy the requirements.txt file into the container
 COPY requirements.txt .
-RUN pip install -r requirements.txt
 
-COPY src /src
+# Install the required packages
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENV PYTHONPATH=/src
+# Copy the entire src directory into the container
+COPY ./src .
 
+# Expose the port on which the app will run
 EXPOSE 8000
 
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "src.main:app", "--bind", "0.0.0.0:8000"]
+# Start the application using an ASGI server (Uvicorn in this case)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
