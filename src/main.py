@@ -4,11 +4,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Use relative imports
-from app.utils.utils import load_asset
-from app.config import Settings
-from app.models.train_model import train_model
-from app.models.model import inference
-from app.models.data import process_data
+from src.app.utils.utils import load_asset
+from src.app.config import Settings
+from src.app.models.train_model import train_model
+from src.app.models.model import inference
+from src.app.models.data import process_data
 
 import joblib
 from pydantic import BaseModel
