@@ -8,3 +8,5 @@ scikit-learn==0.24.2
 uvicorn==0.14.0
 httpx==0.18.2
 python-dotenv
+h11<0.13,>=0.11
+
